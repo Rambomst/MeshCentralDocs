@@ -27,12 +27,55 @@ filename, such as `meshagent_x86-64` or `MeshService64.exe`. Preserve names that
 distinguish libc, CPU architecture and KVM support. Default downloads require
 raw files; archives can be imported separately through **Agent builds**.
 
-Publish `agent-release.json` alongside the binaries. It records the repository,
-tag, filename, asset name, byte length and SHA384 of each complete file. Generate
-these hashes after signing and any other changes to the files. Use the full-file
-hash, which can differ from MeshCentral's native update hash.
+Releases do not need a checksum file. GitHub records a SHA256 digest for each
+asset, which imports verify, and MeshCentral pins the size and SHA384 of each
+default file in its own `agents/agent-defaults.json`. Files signed or replaced
+in a draft before publishing need no extra step.
 
-The JSON format is:
+## Publishing workflow
+
+In MeshAgent:
+
+1. Push a version tag at the commit to release. This starts **Agent Release**.
+   Manual runs must select an existing version tag, and the workflow must be
+   present on the default branch.
+2. Wait for the Linux, Windows, macOS and FreeBSD builds to finish. All must
+   succeed before the workflow creates a draft with the binaries and manifest.
+3. Review the assets and release notes, then publish the draft. Tags with a
+   suffix, such as `1.2.0-beta.1`, create prerelease drafts.
+
+MeshCentralAndroidAgent's **Android Release** workflow requires a numeric tag
+such as `1.0.24` matching the app's `versionName`, without a `v` prefix or
+prerelease suffix. It requires the existing Android signing secrets and creates
+a draft with `meshagent_android.apk`, retaining the versioned APK and AAB
+downloads. To publish an Android testing release, mark that draft as a
+prerelease before publishing. Keep the signing key used by existing
+installations.
+
+The Android APK supplies the server's installer download. An APK imported into
+**Agent builds** can replace it as the server default. **Install and pin** and
+bulk deployment do not apply to APKs; Android app updates use Google Play or APK
+installation.
+
+Neither workflow overwrites an existing release. These workflows use their
+repository's `GITHUB_TOKEN` to create the draft.
+
+Public release downloads in MeshCentral do not require a GitHub token.
+Downloading PR builds or other Actions artifacts requires a token; access to
+private repositories also requires authentication.
+
+## Selecting MeshCentral defaults
+
+After publishing and checking compatibility, download the approved files from
+the release and generate their entries from the MeshCentral repository root. The
+values below are examples:
+
+```sh
+node agents/release-manifest.js --repository Ylianst/MeshAgent --tag 1.2.0 \
+  staging/meshagent_x86-64 staging/meshagent_x86
+```
+
+Add the output's release entries to `agents/agent-defaults.json`. The format is:
 
 ```text
 {
@@ -56,56 +99,13 @@ The JSON format is:
 
 `filename` is the name MeshCentral expects. `asset` is the name attached to the
 GitHub release; the two names can differ. Each filename must be supported by
-MeshCentral and appear only once in a default manifest.
+MeshCentral and appear only once in a default manifest. The SHA384 covers the
+complete file, which can differ from MeshCentral's native update hash.
 
-The release workflows generate this manifest automatically. For manually
-prepared files, run the following from the MeshCentral repository root, using
-the release's repository, tag and complete file list. The values below are
-examples:
-
-```sh
-node agents/release-manifest.js --repository Ylianst/MeshAgent --tag 1.2.0 \
-  staging/meshagent_x86-64 staging/meshagent_x86 > staging/agent-release.json
-```
-
-## Publishing workflow
-
-In MeshAgent:
-
-1. Push a version tag at the commit to release. This starts **Agent Release**.
-   Manual runs must select an existing version tag, and the workflow must be
-   present on the default branch.
-2. Wait for the Linux, Windows, macOS and FreeBSD builds to finish. All must
-   succeed before the workflow creates a draft with the binaries and manifest.
-3. Review the assets and release notes, then publish the draft. Tags with a
-   suffix, such as `1.2.0-beta.1`, create prerelease drafts.
-
-MeshCentralAndroidAgent's **Android Release** workflow requires a numeric tag
-such as `1.0.24` matching the app's `versionName`, without a `v` prefix or
-prerelease suffix. It requires the existing Android signing secrets and creates
-a draft with `meshagent_android.apk` and `agent-release.json`, retaining the
-versioned APK and AAB downloads. To publish an Android testing release, mark
-that draft as a prerelease before publishing. Keep the signing key used by
-existing installations.
-
-The Android APK supplies the server's installer download. APKs are not supported
-by the native agent catalog's **Install and pin** or bulk deployment controls;
-Android app updates use Google Play or APK installation.
-
-Neither workflow overwrites an existing release. These workflows use their
-repository's `GITHUB_TOKEN` to create the draft.
-
-Public release downloads in MeshCentral do not require a GitHub token.
-Downloading PR builds or other Actions artifacts requires a token; access to
-private repositories also requires authentication.
-
-## Selecting MeshCentral defaults
-
-After publishing and checking compatibility, copy the approved release entries
-into `agents/agent-defaults.json`. The manifest can combine files from different
-repositories and versions, so older platforms can keep their existing builds.
-Default downloads require public releases. Credentials configured for catalog
-imports are not used for default downloads or scheduled release checks.
+The manifest can combine files from different repositories and versions, so
+older platforms can keep their existing builds. Default downloads require public
+releases. Credentials configured for catalog imports are not used for default
+downloads or scheduled release checks.
 
 Default downloads use the exact tags and hashes in this manifest. Scheduled
 checks report new stable releases without changing the selected files. Changing
@@ -136,8 +136,9 @@ running them manually.
    leave these files out of the default manifest. New beta builds use version
    tags such as `1.2.0-beta.1`.
 
-Migration tags identify the packaging commit. The release manifest records the
-source repository, archive commit and original paths for the preserved files.
+Migration tags identify the packaging commit. Each agent repository's
+`.github/release-migration.json` records the source repository, archive commit,
+original paths and hashes of the preserved files.
 
 For forks, publish in the fork repositories and update the repository fields in
 MeshCentral's default manifest before distribution.

@@ -30,11 +30,11 @@ Only administrators in the default domain can restore the shared defaults.
 
 For offline installation, copy the release files into
 `meshcentral-data/agentbuilds/` using the filenames in the manifest, or upload
-native binaries through **Upload build**, complete the review and select
+the files through **Upload build**, complete the review and select
 **Add build**. Then open **Current defaults > Default downloads** and select
 **Check files**. Files listed in the release manifest must match its size and
-SHA384. APKs, universal macOS binaries and other files unsupported by the native
-upload review must be copied into the directory. Existing
+SHA384. Universal macOS binaries and other files unsupported by the upload
+review must be copied into the directory. Existing
 `meshcentral-data/agents/` and per-domain `agents-<domain>/` overrides retain
 their precedence.
 
@@ -76,8 +76,8 @@ The first check runs shortly after startup. **Default downloads > Check for
 updates** starts a manual check. Repeated manual requests within one minute
 reuse the previous result.
 
-Only published stable version tags with an `agent-release.json` asset are
-reported. Drafts, prereleases and migration releases are excluded. The dialog
+Only published stable version tags carrying at least one of the default files
+are reported. Drafts, prereleases and migration releases are excluded. The dialog
 shows the latest release, current default tags, last successful check and any
 error. Results and HTTP validators are cached while the server is running.
 Failed requests retain the previous result and delay subsequent checks.
@@ -134,7 +134,7 @@ publisher or guarantee that the executable will run on a particular device.
 
 ### Upload files
 
-1. Select **Upload build** and choose the native agent binaries.
+1. Select **Upload build** and choose the agent files.
 2. Select **Review files**.
 3. Enter a build name and select the files to keep.
 4. Confirm the compiled agent type and whether each file includes remote desktop
@@ -142,9 +142,11 @@ publisher or guarantee that the executable will run on a particular device.
    detection alone may not identify the correct type.
 5. Confirm that you trust the files, then select **Add build**.
 
-Uploads accept ELF, PE and thin Mach-O executables. Extract local archives before
-uploading them. Universal Mach-O binaries and agents with appended connection
-settings are not supported. Inspection reads the file without executing it.
+Uploads accept ELF, PE and thin Mach-O executables, and signed Android APKs.
+Extract other local archives before uploading them. Universal Mach-O binaries
+and agents with appended connection settings are not supported. An APK can
+become the server's Android default; **Install and pin** and bulk deployment do
+not apply to it. Inspection reads the file without executing it.
 It reports detected requirements and signature presence, but does not validate
 publisher signatures. Some requirements, including instruction-set attributes
 for uploaded ARM binaries, may remain unknown.
@@ -152,9 +154,10 @@ for uploaded ARM binaries, may remain unknown.
 ### Import from a URL
 
 Select **Import build > Download URL**, enter the direct HTTPS download address,
-then select **Download and review**. The URL must serve a native executable or a
-ZIP archive. Supply a filename if the URL does not provide one. An optional
-SHA256 checks the complete downloaded file, including the archive for ZIP imports.
+then select **Download and review**. The URL must serve a native executable, an
+Android APK or a ZIP archive. An APK is reviewed whole rather than unpacked.
+Supply a filename if the URL does not provide one. An optional SHA256 checks the
+complete downloaded file, including the archive for ZIP imports.
 
 Public GitHub release asset URLs work here. GitHub Actions run and artifact page
 URLs require authentication and cannot be used as ordinary public downloads.
@@ -170,8 +173,9 @@ entries and corrupt archives are rejected.
 
 **Public GitHub releases do not require a token or any GitHub configuration.**
 
-Select **Import build > GitHub**, enter the repository as `owner/repository`, and
-choose a source:
+Select **Import build > GitHub** and choose `Ylianst/MeshAgent`,
+`Ylianst/MeshCentralAndroidAgent`, or **Custom** to enter another repository as
+`owner/repository`. Then choose a source; **Releases** is selected by default:
 
 | Source | Selection | Token needed? |
 | --- | --- | --- |
