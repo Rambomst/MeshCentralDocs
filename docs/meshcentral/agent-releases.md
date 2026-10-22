@@ -91,9 +91,11 @@ Add the output's release entries to `agents/agent-defaults.json`. The format is:
 ```
 
 `filename` is the name MeshCentral expects. `asset` is the name attached to the
-GitHub release; the two names can differ. Each filename must be supported by
-MeshCentral and appear only once in a default manifest. The SHA384 covers the
-complete file, which can differ from MeshCentral's native update hash.
+GitHub release; the two names can differ. Each filename can appear only once in
+a manifest. MeshCentral ignores files it has no agent type for and names them in
+the log, so a release can carry agents that older servers do not know. The
+SHA384 covers the complete file, which can differ from MeshCentral's native
+update hash.
 
 The manifest can combine files from different repositories and versions, so
 older platforms can keep their existing builds. Default downloads require public

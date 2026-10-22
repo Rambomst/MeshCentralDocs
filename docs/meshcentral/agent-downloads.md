@@ -133,10 +133,29 @@ downloads together.
 ## Choosing the defaults
 
 The default manifest is `agents/agent-defaults.json` in the MeshCentral package.
-An administrator can supply another using `settings.agentDownloads.manifest`,
-with a path relative to the data directory or an absolute path. This is a
-server-wide setting: it changes the installers and the files offered to agents
-that update. Changing the manifest requires a restart.
+An administrator can lay another manifest over it using
+`settings.agentDownloads.manifest`, with a path relative to the data directory
+or an absolute path. Each file it lists replaces the shipped pin for that file,
+and files it does not list keep the shipped pin, so a release that only carries
+some agents can be tried without losing the others. Files MeshCentral has no
+agent type for are ignored and named in the log.
+
+For example, to try a MeshAgent testing release, download its
+`agent-release.json` into the data directory and merge this into
+`config.json`:
+
+```json
+{
+  "settings": {
+    "agentDownloads": {
+      "manifest": "agent-release.json"
+    }
+  }
+}
+```
+
+This is a server-wide setting: it changes the installers and the files offered
+to agents that update. Changing the manifest requires a restart.
 
 The initial defaults preserve the binaries previously shipped in MeshCentral
 1.2.6, using the `legacy-1.2.6` migration releases in MeshAgent and
