@@ -13,8 +13,9 @@ artifacts or a moving `latest` URL.
 The server needs outbound HTTPS to `github.com` and
 `release-assets.githubusercontent.com` for the downloads, and to
 `api.github.com` for the release checks described below. To go through a
-forward proxy, set `HTTPS_PROXY` (or `HTTP_PROXY`) in the server's environment,
-as for MeshCentral's other outbound requests.
+forward proxy, set `settings.npmProxy` in `config.json` to the proxy URL, or
+`HTTPS_PROXY` (or `HTTP_PROXY`) in the server's environment. `npmProxy` is used
+first when both are set.
 
 ## Startup
 
@@ -78,11 +79,9 @@ Files in `meshcentral-data/agents/` and per-domain `agents-<domain>/` are served
 ahead of release files, as before, so existing overrides keep working.
 
 Windows agents are signed at startup with a timestamp from an online timestamp
-server. Without internet access this logs `Failed to sign "<file>"` warnings
-and the release files are served unsigned; set
-`settings.agentTimeStampServer` to false to sign them without a timestamp.
-Behind a forward proxy, set `settings.agentTimeStampProxy` to the proxy URL
-instead.
+server. Without internet access, or behind a proxy, this can log
+`Failed to sign "<file>"` warnings and the release files are served unsigned;
+set `settings.agentTimeStampServer` to false to sign them without a timestamp.
 
 To stop the download attempts on a server that never has internet access, merge
 this into `config.json`:
