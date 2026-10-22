@@ -12,7 +12,9 @@ artifacts or a moving `latest` URL.
 
 The server needs outbound HTTPS to `github.com` and
 `release-assets.githubusercontent.com` for the downloads, and to
-`api.github.com` for the release checks described below.
+`api.github.com` for the release checks described below. To go through a
+forward proxy, set `HTTPS_PROXY` (or `HTTP_PROXY`) in the server's environment,
+as for MeshCentral's other outbound requests.
 
 ## Startup
 
@@ -79,6 +81,8 @@ Windows agents are signed at startup with a timestamp from an online timestamp
 server. Without internet access this logs `Failed to sign "<file>"` warnings
 and the release files are served unsigned; set
 `settings.agentTimeStampServer` to false to sign them without a timestamp.
+Behind a forward proxy, set `settings.agentTimeStampProxy` to the proxy URL
+instead.
 
 To stop the download attempts on a server that never has internet access, merge
 this into `config.json`:
@@ -164,8 +168,11 @@ partial or replaced file is never served. Signed copies stay in
 
 - `Unable to download ... from GitHub: Connection timed out.` or
   `Unable to download from this host (<code>).` The server cannot reach GitHub.
-  Allow outbound HTTPS to the hosts listed at the top of this page, or copy the
-  files in as described under [Offline servers](#offline-servers).
+  Allow outbound HTTPS to the hosts listed at the top of this page, set a proxy,
+  or copy the files in as described under [Offline servers](#offline-servers).
+- `Downloads from private or reserved addresses are not allowed.` The server's
+  DNS answered with a private or reserved address for a GitHub host, as a DNS
+  filter or sinkhole does. Fix the DNS answer or set a proxy.
 - `Agent downloads are disabled and ... missing.` Downloads are off and the
   named files are not cached. Copy them into the folder the warning names.
 - `<file>: Release asset not found.` The pinned release or asset does not exist
