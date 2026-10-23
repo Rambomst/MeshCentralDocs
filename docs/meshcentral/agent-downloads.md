@@ -73,7 +73,8 @@ saved under their release names in
 `meshcentral-data/agentbuilds/legacy-1.2.6/meshagent_x86-64`. Each file must
 match the size and SHA384 in the manifest; anything else in the folder is
 ignored. Files are used at the next background check or restart. In a
-container, copy them into `agentbuilds/<tag>/` on the `meshcentral-data` volume.
+container, copy them into `agentbuilds/<tag>/` on the `meshcentral-data` volume,
+or [build them into your image](#building-them-into-an-image).
 
 Files in `meshcentral-data/agents/` and per-domain `agents-<domain>/` are served
 ahead of release files, as before, so existing overrides keep working.
@@ -99,6 +100,47 @@ this into `config.json`:
 A disabled server still loads verified cached files and files copied in by
 hand, and logs one warning listing the files that are missing and where they
 go.
+
+### Building them into an image
+
+Before downloading, MeshCentral also looks in its own `agents` folder. A file
+there that matches the manifest is copied into
+`meshcentral-data/agentbuilds/<tag>/` at startup without contacting GitHub. In
+a container that folder is part of the image, not the data volume, so an image
+built where GitHub can be reached carries the files to a server that cannot
+reach it:
+
+```dockerfile
+FROM ghcr.io/ylianst/meshcentral:latest
+WORKDIR /opt/meshcentral/meshcentral
+RUN node agents/check-releases.js --output agents
+WORKDIR /opt/meshcentral
+```
+
+`check-releases.js --output` downloads the files in the shipped manifest,
+checks each one against its size and SHA384, and saves it under its file name.
+Files already in the folder that match are kept, and the build fails if any
+file cannot be downloaded or verified. On an npm install the folder is
+`node_modules/meshcentral/agents`.
+
+`--output` is newer than MeshCentral 1.3.0. On 1.3.0, download the files listed
+in `agents/agent-defaults.json` into the same folder yourself and check them
+with `node agents/check-releases.js --directory agents`, which fails on a
+missing or mismatched file.
+
+The server then needs neither the timestamp server nor GitHub, so set both
+options described above:
+
+```json
+{
+  "settings": {
+    "agentTimeStampServer": false,
+    "agentDownloads": {
+      "enabled": false
+    }
+  }
+}
+```
 
 ## New releases
 

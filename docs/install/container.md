@@ -95,7 +95,7 @@ volumes:
 ```
 
 !!! note
-    The agent installers are not part of the image. On its first start the server downloads them from GitHub into the `meshcentral-data` volume, under `agentbuilds`. A container without internet access needs them copied into that volume, as described in [Agent Downloads](../meshcentral/agent-downloads.md).
+    The agent installers are not part of the image. On its first start the server downloads them from GitHub into the `meshcentral-data` volume, under `agentbuilds`. For a container without internet access, copy them into that volume or build them into your own image, as described in [Agent Downloads](../meshcentral/agent-downloads.md#offline-servers).
 
 Refer to [the Dockerfile](https://github.com/Ylianst/MeshCentral/blob/5032755c2971955161105922e723461385a6c874/docker/Dockerfile#L70-L123) for its environment variables.
 
